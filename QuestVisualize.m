@@ -69,7 +69,7 @@ handles = guidata(hObject);
 % This sets up the initial plot - only do when we are invisible
 % so window can get raised using QuestVisualize.
 if strcmp(get(hObject,'Visible'),'off')
-    [tTest q] = updateDisplay(hObject, eventdata, handles);
+    [tTest q] = updateDisplay(handles);
     handles.tTest = tTest;
     handles.q = q;
     guidata(hObject, handles);
@@ -96,7 +96,7 @@ function Correct_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 response = 1;
 handles.q = QuestUpdate(handles.q,handles.tTest,response);
-tTest = updateDisplay(hObject, eventdata, handles);
+tTest = updateDisplay(handles);
 handles.tTest = tTest;
 guidata(hObject, handles);
 
@@ -107,7 +107,7 @@ function Incorrect_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 response = 0;
 handles.q = QuestUpdate(handles.q,handles.tTest,response);
-tTest = updateDisplay(hObject, eventdata, handles);
+tTest = updateDisplay(handles);
 handles.tTest = tTest;
 guidata(hObject, handles);
 
@@ -152,104 +152,6 @@ delete(handles.figure1)
 
 
 
-function [tTest q] = updateDisplay(hObject, eventdata, handles)
-tTest = QuestMean(handles.q);
-%  tTest = QuestMode(handles.q);
-
-q=QuestRecompute(handles.q);
-
-relativeToUpperLimit  = 1; %get(handles.relative,'Value');
-upperLimit = str2num(get(handles.upperLimitUnlog,'String'));
-lowerLimit = str2num(get(handles.lowerLimitUnlog,'String'));
-% if lowerLimit <= 0
-%     set(handles.lowerLimitLog,'String','-Inf');
-% else
-%     if relativeToUpperLimit
-%         set(handles.lowerLimitLog,'String',num2str(log10(lowerLimit/upperLimit)));
-%     else
-%         set(handles.lowerLimitLog,'String',num2str(log10(lowerLimit)));
-%     end
-% end
-% if relativeToUpperLimit
-%     set(handles.upperLimitLog,'String','0');
-% else
-%     set(handles.upperLimitLog,'String',num2str(log10(upperLimit)));
-% end
-
-set(handles.testLevel,'String', ['Test level = ' sprintf('%.2f', tTest)]);
-
-unlogTestLevel = 10 ^ tTest;
-if relativeToUpperLimit
-    unlogTestLevel  = unlogTestLevel  * upperLimit;
-end
-set(handles.unlogTestLevel,'String', ['Test level = ' sprintf('%.2f', unlogTestLevel)]);
-set(handles.threshEst,'String', sprintf('%.2f', unlogTestLevel)); % The way this works now, the final threshold estimate is the same as the next test level.
-
-if unlogTestLevel < lowerLimit
-    unlogTestLevel = lowerLimit;
-elseif unlogTestLevel > upperLimit
-    unlogTestLevel = upperLimit;
-end
-set(handles.limitedUnlogTestLevel,'String', ['Limited test level = ' sprintf('%.2f', unlogTestLevel)]);
-tTest = unlogTestLevel;
-if relativeToUpperLimit
-    tTest  = tTest / upperLimit;
-end
-tTest = log10(tTest);
-set(handles.limitedLogTestLevel,'String', ['Limited test level = ' sprintf('%.2f', tTest)]);
-
-set(handles.pdfStd, 'String',sprintf('%.3f',QuestSD(q)));
-
-% Draw the pdf  
-axes(handles.axes1);
-hold off;
-plot(q.x + q.tGuess, q.pdf,'k');
-% Draw the functions that will be applied in the case of correct or
-% incorrect
-if get(handles.showS2,'Value')
-    hold on;
-    ii=size(q.pdf,2)+q.i-round((tTest-q.tGuess)/q.grain);
-    plot(q.x + q.tGuess, max(q.pdf) * q.s2(1,ii),'r');
-    plot(q.x + q.tGuess, max(q.pdf) * q.s2(2,ii),'b');
-end
-axis tight
-xlabel('Trial');
-ylabel('Intensity (log)');
-
-% Draw the trial history
-axes(handles.axes2);
-plot([q.intensity(1:q.trialCount) tTest],'.-','MarkerSize',20);
-xlabel('Trial');
-ylabel('Intensity');
-
-
-% Now the unlog versions
-    
-
-% Draw the trial history
-axes(handles.axes4);
-intensities = [q.intensity(1:q.trialCount) tTest];
-intensities = 10 .^ intensities ;
-if relativeToUpperLimit
-    intensities = intensities * upperLimit;
-end
-plot(intensities,'.-','MarkerSize',20);
-xlabel('Trial');
-ylabel('Intensity (log)');
-
-% Draw the posterior distribution function
-axes(handles.axes3);
-x = q.x + q.tGuess;
-x =  10 .^ x;
-if relativeToUpperLimit 
-    x = x * upperLimit;
-end
-plot(x, q.pdf,'k');
-axis tight
-xlabel('Intensity (log)');
-ylabel('Probability');
-
-set(gca,'XLim',[lowerLimit upperLimit]);
 
 
 
@@ -260,7 +162,7 @@ function upperLimitUnlog_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of upperLimitUnlog as text
 %        str2double(get(hObject,'String')) returns contents of upperLimitUnlog as a double
-updateDisplay(hObject, eventdata, handles);
+updateDisplay(handles);
 
 
 
@@ -307,7 +209,7 @@ function useLimits_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of useLimits
-updateDisplay(hObject, eventdata, handles);
+updateDisplay(handles);
 
 % --- Executes on button press in relative.
 function relative_Callback(hObject, eventdata, handles)
@@ -316,10 +218,10 @@ function relative_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of relative
-updateDisplay(hObject, eventdata, handles);
+updateDisplay(handles);
 
 function lowerLimitUnlog_Callback(hObject, eventdata, handles)
-updateDisplay(hObject, eventdata, handles);
+updateDisplay(handles);
 
 
 % --- Executes on button press in drawPsychometricFunction.
@@ -328,37 +230,10 @@ function drawPsychometricFunction_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-x = handles.q.x2+QuestMean(handles.q);
-figure; subplot(2,1,1); plot(x,handles.q.p2); grid on;
-set(gca,'XLim', [-2 2]);
-ytick = [ 0.5000      0.6000      0.7000    0.8000  0.82     0.9000   1];
-set(gca,'YTick',ytick);
-
-relativeToUpperLimit  = 1; %get(handles.relative,'Value');
 upperLimit = str2num(get(handles.upperLimitUnlog,'String'));
 lowerLimit = str2num(get(handles.lowerLimitUnlog,'String'));
-if relativeToUpperLimit
-    logLowerLimit = log10(lowerLimit/upperLimit);
-    logUpperLimit = 0;
-else
-    logLowerLimit = log10(lowerLimit);
-    logUpperLimit = log10(upperLimit);
-end
 
-xlim = get(gca,'XLim');
-xlim(2) = logUpperLimit;
-set(gca,'XLim',xlim);
-
-x =  10 .^ x;
-if relativeToUpperLimit 
-    x = x * upperLimit;
-end
-subplot(2,1,2); plot(x,handles.q.p2); grid on;
-set(gca,'YTick',ytick);
-xlim = get(gca,'XLim');
-xlim(2) = upperLimit;
-set(gca,'XLim',xlim);
-
+drawPsychometricFunction(upperLimit, lowerLimit, handles.q)
 
 % --- Executes on button press in simulate.
 function simulate_Callback(hObject, eventdata, handles)
@@ -366,54 +241,22 @@ function simulate_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Set up variables
 tActual = str2num(get(handles.trueThres,'String'));
 if isempty(tActual) return; end;
-relativeToUpperLimit  = 1; %get(handles.relative,'Value');
-upperLimit = str2num(get(handles.upperLimitUnlog,'String'));
-lowerLimit = str2num(get(handles.lowerLimitUnlog,'String'));
-if relativeToUpperLimit
-    logLowerLimit = log10(lowerLimit/upperLimit);
-    logUpperLimit = 0;
-else
-    logLowerLimit = log10(lowerLimit);
-    logUpperLimit = log10(upperLimit);
-end
-if relativeToUpperLimit
-    tActual = tActual / upperLimit;
-end
-tActual = log10(tActual);
-
-
-% Start new Quest instance
-myq=QuestCreate(handles.q.tGuess,handles.q.tGuessSd,handles.q.pThreshold,handles.q.beta,handles.q.delta,handles.q.gamma);
-myq=QuestRecompute(myq);
+upperLimitUnlog = str2num(get(handles.upperLimitUnlog,'String'));
+lowerLimitUnlog = str2num(get(handles.lowerLimitUnlog,'String'));
 numTrials = str2num(get(handles.numTrials,'String'));
-for k = 1:numTrials
-    tTest = QuestMean(myq);
-        tTest=min(logUpperLimit,max(logLowerLimit,tTest));
-    
-    response=QuestSimulate(myq,tTest,tActual);
 
-    myq=QuestUpdate(myq,tTest,response);
-end
+[intensities finalVal] = simulateQuestRun(tActual, upperLimitUnlog, lowerLimitUnlog, handles.q, numTrials);
 
-disp(sprintf('%d ',myq.response))
-
-intensities = myq.intensity(1:myq.trialCount);
-intensities = 10 .^ intensities ;
-if relativeToUpperLimit
-    intensities = intensities * upperLimit;
-end
-figure;  plot(intensities,'.-'); axis tight;
-finalVal = QuestMean(myq);
-finalVal=min(logUpperLimit,max(logLowerLimit,finalVal));
-finalVal = 10 ^ finalVal;
-if relativeToUpperLimit
-    finalVal = finalVal * upperLimit;
-end
-
+% Plot the trials
+figure;  
+plot(intensities,'.-'); 
+axis tight;
+xlabel('Trial');
+ylabel('Test level');
 title(['Final threshold computation: ' num2str(finalVal)]);
+
 
 function trueThres_Callback(hObject, eventdata, handles)
 % hObject    handle to trueThres (see GCBO)
@@ -448,55 +291,24 @@ function distOfEstimates_Callback(hObject, eventdata, handles)
 
 tActual = str2num(get(handles.trueThres,'String'));
 if isempty(tActual) return; end;
-relativeToUpperLimit  = 1; %get(handles.relative,'Value');
-upperLimit = str2num(get(handles.upperLimitUnlog,'String'));
-lowerLimit = str2num(get(handles.lowerLimitUnlog,'String'));
-if relativeToUpperLimit
-    logLowerLimit = log10(lowerLimit/upperLimit);
-    logUpperLimit = 0;
-else
-    logLowerLimit = log10(lowerLimit);
-    logUpperLimit = log10(upperLimit);
-end
-
-if relativeToUpperLimit
-    tActual = tActual / upperLimit;
-end
-tActual = log10(tActual);
+upperLimitUnlog = str2num(get(handles.upperLimitUnlog,'String'));
+lowerLimitUnlog = str2num(get(handles.lowerLimitUnlog,'String'));
+numTrials = str2num(get(handles.numTrials,'String'));
 numRuns = str2num(get(handles.numRuns,'String'));
 
+totalNumAtFloor = 0;
 finalVals = [];
-numTrials = str2num(get(handles.numTrials,'String'));
-numAtFloor = 0;
 for i = 1:numRuns
-    myq=QuestCreate(handles.q.tGuess,handles.q.tGuessSd,handles.q.pThreshold,handles.q.beta,handles.q.delta,handles.q.gamma);
-    myq=QuestRecompute(myq);
+    [intensities finalVal numAtFloor] = simulateQuestRun(tActual, upperLimitUnlog, lowerLimitUnlog, handles.q, numTrials);
     
-    for k = 1:numTrials
-        tTest = QuestMean(myq);
-            tTest=min(logUpperLimit,max(logLowerLimit,tTest));
-
-        response=QuestSimulate(myq,tTest,tActual);
-
-        myq=QuestUpdate(myq,tTest,response);
-    end
-    intensities = myq.intensity(1:myq.trialCount);
-    numAtFloor = numAtFloor + length(find(intensities >= 0));
-    intensities = 10 .^ intensities ;
-    if relativeToUpperLimit
-        intensities = intensities * upperLimit;
-    end
-    finalVal = QuestMean(myq);
-    finalVal=min(logUpperLimit,max(logLowerLimit,finalVal));
-    finalVal = 10 ^ finalVal;
-    if relativeToUpperLimit
-        finalVal = finalVal * upperLimit;
-    end
     finalVals = [finalVals finalVal];
+    totalNumAtFloor = totalNumAtFloor + numAtFloor;
 end
-figure; hist(finalVals); title(['Mean: ' num2str(mean(finalVals)) '  SD: ' num2str(std(finalVals)) ' At floor: ' num2str(numAtFloor)]);%'  SD/mean: ' num2str(std(finalVals)/mean(finalVals))]);
-% disp(['Num at floor: ' num2str(numAtFloor) ' = ' num2str(numAtFloor
-% /(numTrials * 100)) ' of the total' ]);
+figure; 
+hist(finalVals); 
+title(['Mean: ' num2str(mean(finalVals)) '  SD: ' num2str(std(finalVals)) '   Mean trials at floor: ' sprintf('%.1f',totalNumAtFloor/numRuns)]);%'  SD/mean: ' num2str(std(finalVals)/mean(finalVals))]);
+xlabel('Final estimate of threshold');
+ylabel('Frequency')
 
 % --- Executes on button press in showS2.
 function showS2_Callback(hObject, eventdata, handles)
@@ -505,7 +317,7 @@ function showS2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of showS2
-updateDisplay(hObject, eventdata, handles);
+updateDisplay(handles);
 
 
 
@@ -517,7 +329,7 @@ function reversePsychometric_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of reversePsychometric
-[tTest q] = updateDisplay(hObject, eventdata, handles);
+[tTest q] = updateDisplay(handles);
 
 handles.q = q;
 % Update handles structure
@@ -534,7 +346,7 @@ function Reset_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 handles.q = QuestCreate(handles.q.tGuess,handles.q.tGuessSd,handles.q.pThreshold,handles.q.beta,handles.q.delta,handles.q.gamma);
-[tTest q] = updateDisplay(hObject, eventdata, handles);
+[tTest q] = updateDisplay(handles);
 handles.tTest = tTest;
 handles.q = q;
 guidata(hObject, handles);
