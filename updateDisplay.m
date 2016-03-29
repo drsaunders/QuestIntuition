@@ -46,6 +46,13 @@ set(handles.limitedLogTestLevel,'String', ['Limited test level = ' sprintf('%.2f
 
 set(handles.pdfStd, 'String',sprintf('%.3f',QuestSd(q)));
 
+% UPDATE LOG STATUS PLOTS
+% Draw the trial history
+axes(handles.axes2);
+plot([q.intensity(1:q.trialCount) tTest],'.-','MarkerSize',20);
+xlabel('Trial');
+ylabel('Intensity (log)');
+
 % Draw the pdf  
 axes(handles.axes1);
 hold off;
@@ -59,19 +66,10 @@ if get(handles.showS2,'Value')
     plot(q.x + q.tGuess, max(q.pdf) * q.s2(2,ii),'b');
 end
 axis tight
-xlabel('Trial');
-ylabel('Intensity (log)');
+xlabel('Intensity (log)');
+ylabel('Probability');
 
-% Draw the trial history
-axes(handles.axes2);
-plot([q.intensity(1:q.trialCount) tTest],'.-','MarkerSize',20);
-xlabel('Trial');
-ylabel('Intensity');
-
-
-% Now the unlog versions
-    
-
+% UPDATE UNLOG STATUS PLOTS
 % Draw the trial history
 axes(handles.axes4);
 intensities = [q.intensity(1:q.trialCount) tTest];
@@ -81,7 +79,7 @@ if relativeToUpperLimit
 end
 plot(intensities,'.-','MarkerSize',20);
 xlabel('Trial');
-ylabel('Intensity (log)');
+ylabel('Intensity');
 
 % Draw the posterior distribution function
 axes(handles.axes3);
@@ -92,7 +90,7 @@ if relativeToUpperLimit
 end
 plot(x, q.pdf,'k');
 axis tight
-xlabel('Intensity (log)');
+xlabel('Intensity');
 ylabel('Probability');
 
 set(gca,'XLim',[lowerLimit upperLimit]);

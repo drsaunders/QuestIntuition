@@ -1,24 +1,5 @@
 function varargout = QuestVisualize(varargin)
-% QUESTVISUALIZE M-file for QuestVisualize.fig
-%      QUESTVISUALIZE, by itself, creates a new QUESTVISUALIZE or raises the existing
-%      singleton*.
-%
-%      H = QUESTVISUALIZE returns the handle to a new QUESTVISUALIZE or the handle to
-%      the existing singleton*.
-%
-%      QUESTVISUALIZE('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in QUESTVISUALIZE.M with the given input arguments.
-%
-%      QUESTVISUALIZE('Property','Value',...) creates a new QUESTVISUALIZE or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before QuestQuest_OpeningFunction gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to QuestVisualize_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
+
 
 % Edit the above text to modify the response to help QuestVisualize
 
@@ -43,6 +24,8 @@ else
 end
 % End initialization code - DO NOT EDIT
 
+
+
 % --- Executes just before QuestVisualize is made visible.
 function QuestVisualize_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -62,7 +45,7 @@ warning('off','MATLAB:log:logOfZero');
 % Update handles structure
 guidata(hObject, handles);
 
-resetQuest(hObject, eventdata, handles);
+resetQuest(hObject, handles);
 
 handles = guidata(hObject);
 
@@ -75,8 +58,6 @@ if strcmp(get(hObject,'Visible'),'off')
     guidata(hObject, handles);
 end
 
-% UIWAIT makes QuestVisualize wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -89,69 +70,33 @@ function varargout = QuestVisualize_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+
+
 % --- Executes on button press in Correct.
 function Correct_Callback(hObject, eventdata, handles)
 % hObject    handle to Correct (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-response = 1;
-handles.q = QuestUpdate(handles.q,handles.tTest,response);
+
+correct = 1;
+% [q, tTest] = manualQuestStep(q, correct);
+handles.q = QuestUpdate(handles.q, handles.tTest, correct);
 tTest = updateDisplay(handles);
 handles.tTest = tTest;
 guidata(hObject, handles);
+
+
 
 % --- Executes on button press in Incorrect.
 function Incorrect_Callback(hObject, eventdata, handles)
 % hObject    handle to Incorrect (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-response = 0;
-handles.q = QuestUpdate(handles.q,handles.tTest,response);
+correct = 0;
+handles.q = QuestUpdate(handles.q, handles.tTest, correct);
 tTest = updateDisplay(handles);
 handles.tTest = tTest;
 guidata(hObject, handles);
-
-
-% --------------------------------------------------------------------
-function FileMenu_Callback(hObject, eventdata, handles)
-% hObject    handle to FileMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
-function OpenMenuItem_Callback(hObject, eventdata, handles)
-% hObject    handle to OpenMenuItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-file = uigetfile('*.fig');
-if ~isequal(file, 0)
-    open(file);
-end
-
-% --------------------------------------------------------------------
-function PrintMenuItem_Callback(hObject, eventdata, handles)
-% hObject    handle to PrintMenuItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-printdlg(handles.figure1)
-
-% --------------------------------------------------------------------
-function CloseMenuItem_Callback(hObject, eventdata, handles)
-% hObject    handle to CloseMenuItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-selection = questdlg(['Close ' get(handles.figure1,'Name') '?'],...
-                     ['Close ' get(handles.figure1,'Name') '...'],...
-                     'Yes','No','Yes');
-if strcmp(selection,'No')
-    return;
-end
-
-delete(handles.figure1)
-
-
-
 
 
 
@@ -247,15 +192,12 @@ upperLimitUnlog = str2num(get(handles.upperLimitUnlog,'String'));
 lowerLimitUnlog = str2num(get(handles.lowerLimitUnlog,'String'));
 numTrials = str2num(get(handles.numTrials,'String'));
 
+% Do one simulated run of quest, with the true psychophysical parameters
+% set in the various fields
 [intensities finalVal] = simulateQuestRun(tActual, upperLimitUnlog, lowerLimitUnlog, handles.q, numTrials);
 
-% Plot the trials
-figure;  
-plot(intensities,'.-'); 
-axis tight;
-xlabel('Trial');
-ylabel('Test level');
-title(['Final threshold computation: ' num2str(finalVal)]);
+% Plot the trials for the simulated run
+plotQuestRun(intensities, finalVal);
 
 
 function trueThres_Callback(hObject, eventdata, handles)
@@ -263,8 +205,7 @@ function trueThres_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of trueThres as text
-%        str2double(get(hObject,'String')) returns contents of trueThres as a double
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -278,7 +219,6 @@ function trueThres_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 
 
@@ -296,19 +236,11 @@ lowerLimitUnlog = str2num(get(handles.lowerLimitUnlog,'String'));
 numTrials = str2num(get(handles.numTrials,'String'));
 numRuns = str2num(get(handles.numRuns,'String'));
 
-totalNumAtFloor = 0;
-finalVals = [];
-for i = 1:numRuns
-    [intensities finalVal numAtFloor] = simulateQuestRun(tActual, upperLimitUnlog, lowerLimitUnlog, handles.q, numTrials);
-    
-    finalVals = [finalVals finalVal];
-    totalNumAtFloor = totalNumAtFloor + numAtFloor;
-end
-figure; 
-hist(finalVals); 
-title(['Mean: ' num2str(mean(finalVals)) '  SD: ' num2str(std(finalVals)) '   Mean trials at floor: ' sprintf('%.1f',totalNumAtFloor/numRuns)]);%'  SD/mean: ' num2str(std(finalVals)/mean(finalVals))]);
-xlabel('Final estimate of threshold');
-ylabel('Frequency')
+% Simulate multiple quest runs, and plot the distribution of estimates that
+% are achieved
+runMultipleQuestEstimates(tActual, handles.q, upperLimitUnlog, lowerLimitUnlog, numTrials, numRuns);
+
+
 
 % --- Executes on button press in showS2.
 function showS2_Callback(hObject, eventdata, handles)
@@ -321,21 +253,17 @@ updateDisplay(handles);
 
 
 
-
 % --- Executes on button press in reversePsychometric.
 function reversePsychometric_Callback(hObject, eventdata, handles)
 % hObject    handle to reversePsychometric (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of reversePsychometric
 [tTest q] = updateDisplay(handles);
 
 handles.q = q;
 % Update handles structure
 guidata(hObject, handles);
-
-
 
 
 
@@ -345,6 +273,7 @@ function Reset_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Reset the quest procedure, by recreating the Quest object.
 handles.q = QuestCreate(handles.q.tGuess,handles.q.tGuessSd,handles.q.pThreshold,handles.q.beta,handles.q.delta,handles.q.gamma);
 [tTest q] = updateDisplay(handles);
 handles.tTest = tTest;
@@ -353,16 +282,11 @@ guidata(hObject, handles);
 
 
 
-
-
-
 function initialGuess_Callback(hObject, eventdata, handles)
 % hObject    handle to initialGuess (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of initialGuess as text
-%        str2double(get(hObject,'String')) returns contents of initialGuess as a double
 
 
 % --- Executes during object creation, after setting all properties.
@@ -371,8 +295,6 @@ function initialGuess_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -386,6 +308,7 @@ function priorStd_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of priorStd as text
 %        str2double(get(hObject,'String')) returns contents of priorStd as a double
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -407,8 +330,6 @@ function targetThres_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of targetThres as text
-%        str2double(get(hObject,'String')) returns contents of targetThres as a double
 
 
 % --- Executes during object creation, after setting all properties.
@@ -430,8 +351,7 @@ function Beta_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of Beta as text
-%        str2double(get(hObject,'String')) returns contents of Beta as a double
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -457,6 +377,7 @@ function Delta_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of Delta as a double
 
 
+
 % --- Executes during object creation, after setting all properties.
 function Delta_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to Delta (see GCBO)
@@ -476,8 +397,6 @@ function Gamma_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of Gamma as text
-%        str2double(get(hObject,'String')) returns contents of Gamma as a double
 
 
 % --- Executes during object creation, after setting all properties.
@@ -486,12 +405,9 @@ function Gamma_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 
 
@@ -502,31 +418,15 @@ function pushbutton9_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
+
 % --- Executes on button press in ApplyButton.
 function ApplyButton_Callback(hObject, eventdata, handles)
 % hObject    handle to ApplyButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-resetQuest(hObject, eventdata, handles);
-
-
-function resetQuest(hObject, eventdata, handles)
-
-initialGuess = get(handles.initialGuess,'String');
-tGuess = log10(str2num(initialGuess) / 200);
-tGuessSd = str2num(get(handles.priorStd, 'String'));
-pThreshold=str2num(get(handles.targetThres, 'String'));
-beta=str2num(get(handles.Beta, 'String')); 
-delta=str2num(get(handles.Delta, 'String')); 
-gamma=str2num(get(handles.Gamma, 'String'));
-q=QuestCreate(tGuess,tGuessSd,pThreshold,beta,delta,gamma);
-q.normalizePdf=1;
-handles.q = q;
-handles.maxVal = -1;
-
-% Update handles structure
-guidata(hObject, handles);
+resetQuest(hObject, handles);
+handles = guidata(hObject);
 Reset_Callback(hObject, eventdata, handles);
 
 
@@ -536,8 +436,6 @@ function numTrials_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of numTrials as text
-%        str2double(get(hObject,'String')) returns contents of numTrials as a double
 
 
 % --- Executes during object creation, after setting all properties.
@@ -546,8 +444,6 @@ function numTrials_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -559,8 +455,6 @@ function numRuns_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of numRuns as text
-%        str2double(get(hObject,'String')) returns contents of numRuns as a double
 
 
 % --- Executes during object creation, after setting all properties.
@@ -569,8 +463,6 @@ function numRuns_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
