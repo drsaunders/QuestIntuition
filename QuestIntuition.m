@@ -1,16 +1,18 @@
-function varargout = QuestVisualize(varargin)
+function varargout = QuestIntuition(varargin)
 
 
-% Edit the above text to modify the response to help QuestVisualize
 
-% Last Modified by GUIDE v2.5 30-Jul-2013 17:42:45
+
+% Edit the above text to modify the response to help QuestIntuition
+
+% Last Modified by GUIDE v2.5 30-Mar-2016 21:26:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @QuestVisualize_OpeningFcn, ...
-                   'gui_OutputFcn',  @QuestVisualize_OutputFcn, ...
+                   'gui_OpeningFcn', @QuestIntuition_OpeningFcn, ...
+                   'gui_OutputFcn',  @QuestIntuition_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -26,15 +28,15 @@ end
 
 
 
-% --- Executes just before QuestVisualize is made visible.
-function QuestVisualize_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before QuestIntuition is made visible.
+function QuestIntuition_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to QuestVisualize (see VARARGIN)
+% varargin   command line arguments to QuestIntuition (see VARARGIN)
 
-% Choose default command line output for QuestVisualize
+% Choose default command line output for QuestIntuition
 handles.output = hObject;
 
 warning('off','MATLAB:log:logOfZero');
@@ -50,7 +52,7 @@ resetQuest(hObject, handles);
 handles = guidata(hObject);
 
 % This sets up the initial plot - only do when we are invisible
-% so window can get raised using QuestVisualize.
+% so window can get raised using QuestIntuition.
 if strcmp(get(hObject,'Visible'),'off')
     [tTest q] = updateDisplay(handles);
     handles.tTest = tTest;
@@ -61,7 +63,7 @@ end
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = QuestVisualize_OutputFcn(hObject, eventdata, handles)
+function varargout = QuestIntuition_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
