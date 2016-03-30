@@ -1,9 +1,24 @@
 function varargout = QuestIntuition(varargin)
 
-
-
-
-% Edit the above text to modify the response to help QuestIntuition
+% QUEST Intuition
+%
+% A program for building intuitions about how the QUEST  (Watson and Pelli,
+% 1983; Pelli and Farell, 1995) adaptive staircase procedure behaves, as
+% far as choosing test levels and estimating a psychophysical threshold,
+% and what is going on behind the scenes. Requires MATLAB and the
+% Psychophysics Toolbox (Brainard, 1997).
+%
+% To run, change the directory to QuestIntuition and type QuestIntuition.
+%
+% Enter the initial assumptions for your QUEST procedure in the top box (I
+% provide some defaults from the PsychToolbox's QuestDemo - for advice
+% about setting them, "help QuestDemo") and then either let a simulated
+% QUEST procedure run automatically (middle box), either one run at a time
+% or simulating the distribution of estimates over multiple runs, or step
+% manually one trial at a time (bottom box), noticing how the posterior and
+% test level are updated with each response.
+%
+% Daniel Saunders, 2016
 
 % Last Modified by GUIDE v2.5 30-Mar-2016 21:26:52
 
@@ -80,6 +95,9 @@ function Correct_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% This line ignores this click if there is another click still being dealt with.
+if isMultipleCall();  return;  end
+
 correct = 1;
 % [q, tTest] = manualQuestStep(q, correct);
 handles.q = QuestUpdate(handles.q, handles.tTest, correct);
@@ -94,10 +112,32 @@ function Incorrect_Callback(hObject, eventdata, handles)
 % hObject    handle to Incorrect (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% This line ignores this click if there is another click still being dealt with.
+if isMultipleCall();  return;  end
+
 correct = 0;
 handles.q = QuestUpdate(handles.q, handles.tTest, correct);
 tTest = updateDisplay(handles);
 handles.tTest = tTest;
+guidata(hObject, handles);
+
+
+
+% --- Executes on button press in Reset.
+function Reset_Callback(hObject, eventdata, handles)
+% hObject    handle to Reset (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% This line ignores this click if there is another click still being dealt with.
+if isMultipleCall();  return;  end
+
+% Reset the quest procedure, by recreating the Quest object.
+handles.q = QuestCreate(handles.q.tGuess,handles.q.tGuessSd,handles.q.pThreshold,handles.q.beta,handles.q.delta,handles.q.gamma);
+[tTest q] = updateDisplay(handles);
+handles.tTest = tTest;
+handles.q = q;
 guidata(hObject, handles);
 
 
@@ -265,21 +305,6 @@ function reversePsychometric_Callback(hObject, eventdata, handles)
 
 handles.q = q;
 % Update handles structure
-guidata(hObject, handles);
-
-
-
-% --- Executes on button press in Reset.
-function Reset_Callback(hObject, eventdata, handles)
-% hObject    handle to Reset (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Reset the quest procedure, by recreating the Quest object.
-handles.q = QuestCreate(handles.q.tGuess,handles.q.tGuessSd,handles.q.pThreshold,handles.q.beta,handles.q.delta,handles.q.gamma);
-[tTest q] = updateDisplay(handles);
-handles.tTest = tTest;
-handles.q = q;
 guidata(hObject, handles);
 
 

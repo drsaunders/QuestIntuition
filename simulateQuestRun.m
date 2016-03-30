@@ -1,4 +1,25 @@
 function [intensities finalVal numAtFloor] = simulateQuestRun(tActual, upperLimit, lowerLimit, q, numTrials)
+% [intensities finalVal numAtFloor] = simulateQuestRun(tActual, upperLimit, lowerLimit, q, numTrials)
+%
+% Run one simulated QUEST procedure, determining an estimate of the
+% psychophysical threshold. 
+%
+% INPUT
+%  tActual             The real threshold that will generate the correct and incorrect
+%                      responses
+%  upperLimitUnlog, 
+%   lowerLimitUnlog    The upper and lower limits of the possible thresholds
+%  q                   Parameters of the QUEST procedure
+%  numTrials           The number of trials for each estimate
+%
+% OUTPUT
+%  intensities         All the stimulus intensities tested.
+%  finalVal            The estimate of the threshold
+%  numAtFloor          Number of trials where the trial difficulty was as
+%                      easy as possible (if this is high it might indicate the task is too
+%                      hard)
+
+
 
 % Set up variables
 logLowerLimit = log10(lowerLimit/upperLimit);

@@ -1,8 +1,23 @@
 function [tTest q] = updateDisplay(handles)
+% [tTest q] = updateDisplay(handles)
+% 
+% Recompute the test threshold, fill in all the output fields and redraw all the graphs
+% based on the current state of the QUEST procedure.
+%
+% INPUT
+%  handles   Data structure for persistent state of the dialogue. Obtained
+%            by every callback function
+%
+% OUTPUT
+%  tTest    The current threshold testing level
+%  q        The state of the QUEST procedure and its parameters
+
 tTest = QuestMean(handles.q);
 %  tTest = QuestMode(handles.q);
 
 q=QuestRecompute(handles.q);
+
+markersize = 15;
 
 relativeToUpperLimit  = 1; %get(handles.relative,'Value');
 upperLimit = str2num(get(handles.upperLimitUnlog,'String'));
@@ -49,7 +64,7 @@ set(handles.pdfStd, 'String',sprintf('%.3f',QuestSd(q)));
 % UPDATE LOG STATUS PLOTS
 % Draw the trial history
 axes(handles.axes2);
-plot([q.intensity(1:q.trialCount) tTest],'.-','MarkerSize',20);
+plot([q.intensity(1:q.trialCount) tTest],'.-','MarkerSize',markersize);
 xlabel('Trial');
 ylabel('Intensity (log)');
 
@@ -77,7 +92,7 @@ intensities = 10 .^ intensities ;
 if relativeToUpperLimit
     intensities = intensities * upperLimit;
 end
-plot(intensities,'.-','MarkerSize',20);
+plot(intensities,'.-','MarkerSize',markersize);
 xlabel('Trial');
 ylabel('Intensity');
 

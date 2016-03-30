@@ -1,4 +1,11 @@
 function handles = resetQuest(hObject, handles)
+% handles = resetQuest(hObject, handles)
+%
+% Restart a QUEST procedure, using the parameters in the dialogue.
+%
+% INPUT
+%  hObject  Pointer to the dialogue
+%  handles  Object holding persistent values associated with the dialogue.
 
 initialGuess = get(handles.initialGuess,'String');
 tGuess = log10(str2num(initialGuess) / str2num(get(handles.upperLimitUnlog,'String')));
